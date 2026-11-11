@@ -213,9 +213,6 @@
     if(canvas.width!==W)canvas.width=W;if(canvas.height!==H)canvas.height=H;
     const ctx=canvas.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     background(ctx,W,H);
-    // 사용자 프레임 이미지는 모든 사진 및 문구보다 뒤에 그린다.
-    // 미리보기와 PNG/JPG 저장에서 같은 render()를 사용하므로 레이어 순서가 동일하다.
-    if(state.overlay){ctx.save();ctx.globalAlpha=state.overlayOpacity;drawFit(ctx,state.overlay,0,0,W,H,state.overlayFit);ctx.restore();}
     const outer={x:W*.028,y:H*.02,w:W*.944,h:H*.96};
     const frameColors={white:'#fff',cream:'#f0e5d1',black:'#232a2d',gallery:'#fffdf8',film:'#e8d9bb',poster:'#ffffff'};
     const matColor=frameColors[state.frame];
@@ -226,6 +223,9 @@
     }else if(state.frame==='gallery'){
       ctx.save();ctx.strokeStyle='#344047';ctx.lineWidth=W*.009;ctx.strokeRect(outer.x+W*.004,outer.y+W*.004,outer.w-W*.008,outer.h-W*.008);ctx.restore();
     }
+    // 사용자 프레임 이미지는 모든 사진 및 문구보다 뒤에 그린다.
+    // 미리보기와 PNG/JPG 저장에서 같은 render()를 사용하므로 레이어 순서가 동일하다.
+    if(state.overlay){ctx.save();ctx.globalAlpha=state.overlayOpacity;drawFit(ctx,state.overlay,0,0,W,H,state.overlayFit);ctx.restore();}
     const hasText=(state.showTitle&&(state.title.trim()||state.location.trim()))||infoSummary().length>0;
     const p=W*(state.padding/100)*(state.frame==='poster'?.35:1);
     const bottom=state.frame==='instant'?H*.16:state.frame==='poster'?H*.045:state.frame==='gallery'?H*.17:state.frame==='film'?H*.145:H*(hasText?.16:.13);
