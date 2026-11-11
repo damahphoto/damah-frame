@@ -1,0 +1,27 @@
+{
+  "id": "/damah-frame/",
+  "name": "DAMAH FRAME",
+  "short_name": "DAMAH FRAME",
+  "description": "담아사진관의 무료 사진 프레임·콜라주 편집기",
+  "lang": "ko",
+  "start_url": "/damah-frame/?source=pwa",
+  "scope": "/damah-frame/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f4f0",
+  "theme_color": "#4d7890",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
