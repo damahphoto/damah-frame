@@ -6,6 +6,12 @@
   <meta name="theme-color" content="#f7f4f0" />
   <meta name="description" content="DAMAH FRAME | 원본 사진 그대로 프레임, 콜라주, 사진 촬영 정보를 자유롭게 꾸미는 모바일 포토 에디터" />
   <title>DAMAH FRAME | 사진을 작품으로</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="DAMAH FRAME" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -493,5 +499,13 @@
 <input id="photoFilesInput" type="file" accept="image/*" multiple hidden />
 <input id="replaceFileInput" type="file" accept="image/*" hidden />
 <div id="toast" role="status" aria-live="polite"></div>
+<script>
+  // PWA 설치와 오프라인 실행 지원. 기존 사진 편집기 동작에는 영향을 주지 않습니다.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(error => console.warn('PWA service worker:', error));
+    });
+  }
+</script>
 </body>
 </html>
