@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#f7f4f0" />
   <meta name="description" content="DAMAH FRAME | 원본 사진 그대로 프레임, 콜라주, 사진 촬영 정보를 자유롭게 꾸미는 모바일 포토 에디터" />
   <title>DAMAH FRAME | 사진을 작품으로</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet" />
   
   
   
@@ -19,7 +22,7 @@
   const $ = id => document.getElementById(id);
   const state = {
     photos: [null, null, null, null, null, null], selected: 0, layout: 'one', ratio: '4:5',
-    frame: 'white', background: 'ivory', backgroundImage: null,
+    frame: 'white', background: 'ivory', backgroundImage: null, fontFamily: 'system-ui',
     overlay: null, overlayOpacity: 1, overlayFit: 'stretch', sticker: null,
     stickerX: .77, stickerY: .3, stickerSize: .22,
     padding: 7, gap: 12, rounded: 2, title: '봄날의 기록', location: '',
@@ -126,7 +129,7 @@
   async function loadDecorativeImage(file,kind){
     if(!file)return;try{const image=await decodeImageFromFile(file);
       if(kind==='background'){state.backgroundImage=image;renderBackgroundChoices();toast('배경 사진을 불러왔습니다.');}
-      else if(kind==='overlay'){state.overlay=image;toast('프레임 이미지를 적용했습니다.');}
+      else if(kind==='overlay'){state.overlay=image;toast('프레임 이미지를 사진 뒤 배경에 적용했습니다.');}
       else if(kind==='sticker'){state.sticker=image;state.stickerX=.76;state.stickerY=.27;toast('장식을 불러왔습니다. 사진 위에서 끌어 위치를 조정해 보세요.');}
       redraw();
     }catch(error){toast('장식 이미지를 열 수 없습니다.');}
@@ -210,6 +213,9 @@
     if(canvas.width!==W)canvas.width=W;if(canvas.height!==H)canvas.height=H;
     const ctx=canvas.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     background(ctx,W,H);
+    // 사용자 프레임 이미지는 모든 사진 및 문구보다 뒤에 그린다.
+    // 미리보기와 PNG/JPG 저장에서 같은 render()를 사용하므로 레이어 순서가 동일하다.
+    if(state.overlay){ctx.save();ctx.globalAlpha=state.overlayOpacity;drawFit(ctx,state.overlay,0,0,W,H,state.overlayFit);ctx.restore();}
     const outer={x:W*.028,y:H*.02,w:W*.944,h:H*.96};
     const frameColors={white:'#fff',cream:'#f0e5d1',black:'#232a2d',gallery:'#fffdf8',film:'#e8d9bb',poster:'#ffffff'};
     const matColor=frameColors[state.frame];
@@ -243,29 +249,33 @@
       let titleBits=[];
       if(state.showTitle){if(state.title.trim())titleBits.push(state.title.trim());if(state.location.trim())titleBits.push(state.location.trim());}
       const info=infoSummary();
-      if(titleBits.length){ctx.fillStyle=fg;ctx.font=`600 ${Math.max(14,Math.round(W*.037))}px system-ui,sans-serif`;ctx.fillText(titleBits[0],W/2,zoneY+zoneH*.31,outer.w*.83);
-      if(titleBits.length>1){ctx.fillStyle=sub;ctx.font=`${Math.max(12,Math.round(W*.025))}px system-ui,sans-serif`;ctx.fillText(titleBits[1],W/2,zoneY+zoneH*.51,outer.w*.85);}}
-      if(info.length){ctx.fillStyle=sub;ctx.font=`${Math.max(11,Math.round(W*.022))}px system-ui,sans-serif`;
+      if(titleBits.length){ctx.fillStyle=fg;ctx.font=`600 ${Math.max(14,Math.round(W*.037))}px "${state.fontFamily}",system-ui,sans-serif`;ctx.fillText(titleBits[0],W/2,zoneY+zoneH*.31,outer.w*.83);
+      if(titleBits.length>1){ctx.fillStyle=sub;ctx.font=`${Math.max(12,Math.round(W*.025))}px "${state.fontFamily}",system-ui,sans-serif`;ctx.fillText(titleBits[1],W/2,zoneY+zoneH*.51,outer.w*.85);}}
+      if(info.length){ctx.fillStyle=sub;ctx.font=`${Math.max(11,Math.round(W*.022))}px "${state.fontFamily}",system-ui,sans-serif`;
         const str=info.join('  ·  ');
         const ypos=titleBits.length?zoneY+zoneH*.76:zoneY+zoneH*.51;
         ctx.fillText(str,W/2,ypos,outer.w*.88);
       }
       ctx.restore();
     }
-    if(state.overlay){ctx.save();ctx.globalAlpha=state.overlayOpacity;drawFit(ctx,state.overlay,0,0,W,H,state.overlayFit);ctx.restore();}
     if(state.sticker){ctx.save();const iw=W*state.stickerSize,ih=iw*(state.sticker.naturalHeight/state.sticker.naturalWidth);ctx.drawImage(state.sticker,state.stickerX*W-iw/2,state.stickerY*H-ih/2,iw,ih);ctx.restore();}
     if(preview&&slotCount()>1){const r=rects[state.selected];if(r){ctx.save();ctx.strokeStyle='#e9faff';ctx.lineWidth=Math.max(2,W*.006);ctx.strokeRect(r.x+2,r.y+2,r.w-4,r.h-4);ctx.restore();}}
   }
   function syncMetaFields(){
     const ph=state.photos[state.selected], meta=ph?.meta || blankMeta();
     $('exifStatus').textContent=!ph?'선택한 칸에 사진이 없습니다. 사진을 먼저 추가해 주세요.':ph.exifFound?'촬영 정보(EXIF)를 일부 불러왔습니다. 필요한 값은 수정할 수 있습니다.':'이 사진에는 읽을 수 있는 EXIF가 없습니다. 직접 입력해 주세요.';
-    $('titleInput').value=state.title;$('locationInput').value=state.location;
+    $('titleInput').value=state.title;$('locationInput').value=state.location;$('fontFamilySelect').value=state.fontFamily;
     const map={dateInput:'date',cameraInput:'camera',lensInput:'lens',fnumberInput:'aperture',shutterInput:'shutter',isoInput:'iso',focalInput:'focal'};
     for(const [id,key] of Object.entries(map)){$(id).value=meta[key]||'';$(id).disabled=!ph;}
     $('showTitle').checked=state.showTitle;$('showExif').checked=state.showExif;$('showDate').checked=state.showDate;
   }
   function attachInputEvents(){
     $('titleInput').addEventListener('input',e=>{state.title=e.target.value;redraw();});
+    $('fontFamilySelect').addEventListener('change',async e=>{
+      state.fontFamily=e.target.value;
+      redraw();
+      try{await document.fonts.load('600 28px "'+state.fontFamily+'"');redraw();}catch(err){console.warn('폰트 로딩:',err);}
+    });
     $('locationInput').addEventListener('input',e=>{state.location=e.target.value;redraw();});
     for(const [id,key] of Object.entries({dateInput:'date',cameraInput:'camera',lensInput:'lens',fnumberInput:'aperture',shutterInput:'shutter',isoInput:'iso',focalInput:'focal'})){
       $(id).addEventListener('input',e=>{const ph=state.photos[state.selected];if(ph){ph.meta[key]=e.target.value;redraw();}});
@@ -419,14 +429,14 @@
             <div class="chip-grid" id="frameChoices"></div>
             <label class="range-title" for="paddingControl"><span>프레임 여백</span><output id="paddingValue">7%</output></label><input type="range" id="paddingControl" min="0" max="15" value="7" />
             <div class="control-divider"></div>
-            <div class="panel-title">기본 꾸미기 배경</div>
-            <div class="background-grid" id="backgroundChoices"></div>
+            <!-- 기본 배경 프리셋은 숨기고, 사용자 이미지 배경만 제공합니다. -->
+            <div class="background-grid" id="backgroundChoices" hidden style="display:none"></div>
             <label class="upload-row">내 사진을 배경으로 불러오기 <span>+ 선택</span><input id="backgroundFileInput" type="file" accept="image/*" hidden /></label>
             <button class="btn text-button" type="button" id="clearBackgroundButton">불러온 배경 삭제</button>
             <div class="control-divider"></div>
-            <div class="panel-title">내 프레임 이미지 불러오기</div>
-            <p class="panel-desc">투명 PNG를 올리면 사진 위에 프레임이 겹쳐집니다. JPG도 가능하지만 사진을 가릴 수 있습니다.</p>
-            <label class="upload-row">프레임 이미지 불러오기 <span>+ 선택</span><input id="overlayFileInput" type="file" accept="image/*" hidden /></label>
+            <div class="panel-title">내 프레임 이미지를 배경으로 불러오기</div>
+            <p class="panel-desc">불러온 PNG·JPG 이미지는 모든 사진과 글자 뒤에 배경으로 배치됩니다. 사진 위를 덮지 않습니다.</p>
+            <label class="upload-row">배경 프레임 이미지 불러오기 <span>+ 선택</span><input id="overlayFileInput" type="file" accept="image/*" hidden /></label>
             <label class="range-title" for="overlayOpacity"><span>프레임 이미지 투명도</span><output id="overlayOpacityValue">100%</output></label><input type="range" id="overlayOpacity" min="0" max="100" value="100" />
             <label class="field-label" for="overlayFit">겹치는 방식</label><select id="overlayFit" class="field-select"><option value="stretch">전체 프레임에 맞춤</option><option value="contain">비율 유지 · 전체 표시</option><option value="cover">비율 유지 · 채우기</option></select>
             <button class="btn text-button" type="button" id="clearOverlayButton">불러온 프레임 삭제</button>
@@ -442,6 +452,15 @@
             <p class="panel-desc">JPG에 촬영 정보(EXIF)가 있으면 자동으로 채워집니다. 정보가 없는 사진도 직접 입력할 수 있습니다.</p>
             <div class="info-photo-status" id="exifStatus">현재 선택한 사진에 촬영 정보가 없습니다.</div>
             <label class="field-label" for="titleInput">작품 제목 / 한 줄 문구</label><input id="titleInput" class="field-input" maxlength="60" placeholder="예: 봄의 산책" />
+            <label class="field-label" for="fontFamilySelect">글씨체 선택</label>
+            <select id="fontFamilySelect" class="field-select">
+              <option value="system-ui">기본 글씨체 (기존 디자인)</option>
+              <option value="Noto Sans KR">노토 산스 KR · 깔끔한 고딕</option>
+              <option value="Noto Serif KR">노토 세리프 KR · 클래식</option>
+              <option value="Gowun Dodum">고운 돋움 · 부드러운 느낌</option>
+              <option value="Gowun Batang">고운 바탕 · 감성적인 바탕체</option>
+              <option value="Nanum Myeongjo">나눔 명조 · 작품형</option>
+            </select>
             <label class="field-label" for="locationInput">장소 · 부제</label><input id="locationInput" class="field-input" maxlength="60" placeholder="예: 서울, 2026" />
             <div class="field-grid"><div><label class="field-label" for="dateInput">촬영 일시</label><input id="dateInput" class="field-input" placeholder="2026.04.18 14:30" /></div><div><label class="field-label" for="cameraInput">카메라</label><input id="cameraInput" class="field-input" placeholder="Canon EOS R5" /></div></div>
             <label class="field-label" for="lensInput">렌즈</label><input id="lensInput" class="field-input" placeholder="예: RF 24-105mm F2.8" />
